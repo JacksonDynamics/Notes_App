@@ -5,18 +5,21 @@ import { data } from "./data"
 import Split from "react-split"
 import {nanoid} from "nanoid"
 
-function App() {
-
-const [notes, setNotes] = useState(
-    () => JSON.parse(localStorage.getItem("notes")) || []
-)
-const [currentNoteId, setCurrentNoteId] = React.useState(
-    (notes[0] && notes[0].id) || ""
-)
-
-useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes))
-}, [notes])
+export default function App() {
+    /**
+     * Challenge: When the user edits a note, reposition
+     * it in the list of notes to the top of the list
+     */
+    const [notes, setNotes] = useState(
+        () => JSON.parse(localStorage.getItem("notes")) || []
+    )
+    const [currentNoteId, setCurrentNoteId] = useState(
+        (notes[0] && notes[0].id) || ""
+    )
+    
+    useEffect(() => {
+        localStorage.setItem("notes", JSON.stringify(notes))
+    }, [notes])
     
     function createNewNote() {
         const newNote = {
@@ -28,11 +31,21 @@ useEffect(() => {
     }
     
     function updateNote(text) {
-        setNotes(oldNotes => oldNotes.map(oldNote => {
-            return oldNote.id === currentNoteId
-                ? { ...oldNote, body: text }
-                : oldNote
-        }))
+        // Try to rearrange the most recently-modified
+        // not to be at the top
+        setNotes(oldNotes => {
+            const newArray = []
+            for(let i = 0; i < oldNotes.length; i++) {
+                const oldNote = oldNotes[i]
+                if(oldNote.id === currentNoteId) {
+                    newArray.unshift({ ...oldNote, body: text })
+                } else {
+                    newArray.push(oldNote)
+                }
+            }
+            return newArray
+        })
+        
     }
     
     function findCurrentNote() {
@@ -81,5 +94,3 @@ useEffect(() => {
         </main>
     )
 }
-
-export default App
